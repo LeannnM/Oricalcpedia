@@ -143,15 +143,14 @@
             transform: translateY(-2px);
         }
 
+        /* Estilo limpio para la imagen sin bordes molestos */
         .logo-img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
             image-rendering: pixelated;
-            background-color: #ffffff; /* Fondo blanco prolijo detrás del logo */
-            padding: 10px; /* Margen interno para que quede como un marco */
-            border: 2px solid #ffffff; /* Marco blanco sólido */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Sombra para darle profundidad estilo tarjeta */
+            display: block;
+            margin: 0 auto;
         }
 
         /* Lista de Canciones */
@@ -324,7 +323,7 @@
             <div id="tracks-home-view" class="tracks-home">
                 <button class="btn-open-songs" onclick="toggleSongsList()">🎸 Ver Lista de Temas</button>
                 
-                <!-- Logo de la banda -->
+                <!-- Logo de la banda limpio -->
                 <img src="logo.png" alt="Oricalco Pixel Art" class="logo-img">
             </div>
 
