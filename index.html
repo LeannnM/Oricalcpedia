@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oricalcpedia - App de la Banda</title>
+    <style>
+        :root {
+            --bg-color: #0b0f0d;
+            --container-bg: #112218;
+            --accent-green: #1e3d2f;
+            --accent-yellow: #fcd116;
+            --text-color: #e0e0e0;
+            --text-muted: #8c9ea6;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--container-bg);
+            border: 2px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Cabecera con Título Pixel Art */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 5px;
+        }
+
+        .pixel-title {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--accent-yellow);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 3px 3px 0px #000000, 
+                         -1px -1px 0px #000000, 
+                         1px -1px 0px #000000, 
+                         -1px 1px 0px #000000, 
+                         1px 1px 0px #000000;
+            margin: 0;
+        }
+
+        .pixel-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        /* Menú de Navegación Principal */
+        .nav-menu {
+            display: flex;
+            justify-content: space-around;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 25px;
+            gap: 5px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 15px;
+            font-weight: bold;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-color);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            color: var(--accent-yellow);
+            background-color: var(--accent-green);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        /* Secciones de Contenido */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section-title {
+            color: var(--accent-yellow);
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--accent-green);
+            padding-bottom: 8px;
+        }
+
+        /* Vista de Inicio de Tracks */
+        .tracks-home {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .btn-open-songs {
+            background-color: var(--accent-yellow);
+            color: #0b0f0d;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .btn-open-songs:hover {
+            background-color: #ffd740;
+            transform: translateY(-2px);
+        }
+
+        .logo-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            image-rendering: pixelated;
+            border: 2px dashed var(--accent-green);
+        }
+
+        /* Lista de Canciones */
+        .songs-list-container {
+            display: none;
+        }
+
+        .songs-list-container.active {
+            display: block;
+        }
+
+        .songs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .song-btn {
+            background-color: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--accent-green);
+            color: var(--text-color);
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .song-btn:hover {
+            background-color: var(--accent-green);
+            color: var(--accent-yellow);
+            transform: translateX(4px);
+        }
+
+        /* Vista del Reproductor de una Canción Individual */
+        .player-view {
+            display: none;
+        }
+
+        .player-view.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .back-btn:hover {
+            color: var(--text-color);
+            border-color: var(--text-color);
+        }
+
+        .audio-player-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .audio-player-box audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* Acordeón para Pistas Separadas */
+        .accordion {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 12px 15px;
+            width: 100%;
+            border: 1px solid var(--accent-green);
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+            transition: 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion:hover {
+            background-color: var(--accent-green);
+        }
+
+        .accordion::after {
+            content: '▼';
+            font-size: 12px;
+            color: var(--accent-yellow);
+            transition: transform 0.3s;
+        }
+
+        .accordion.active::after {
+            transform: rotate(180deg);
+        }
+
+        .panel {
+            padding: 0 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .panel-content {
+            padding: 15px 0;
+        }
+
+        .track-control {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .track-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .volume-slider {
+            width: 100%;
+            accent-color: var(--accent-yellow);
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Cabecera con Título Pixel Art -->
+        <header class="header">
+            <h1 class="pixel-title">OricalPedia</h1>
+            <div class="pixel-subtitle">Plataforma Interna de Ensayos</div>
+        </header>
+
+        <!-- Menú Principal -->
+        <nav class="nav-menu">
+            <button class="nav-btn active" onclick="switchMainTab(event, 'tracks-tab')">Tracks</button>
+            <button class="nav-btn" onclick="switchMainTab(event, 'letras-tab')">Letras</button>
+            <button class="nav-btn" onclick="switchMainTab(event, 'partituras-tab')">Partituras</button>
+        </nav>
+
+        <!-- SECCIÓN 1: TRACKS -->
+        <section id="tracks-tab" class="tab-content active">
+            
+            <!-- Vista de Inicio de Tracks -->
+            <div id="tracks-home-view" class="tracks-home">
+                <button class="btn-open-songs" onclick="toggleSongsList()">🎸 Ver Lista de Temas</button>
+                
+                <!-- Logo de la banda -->
+                <img src="logo.png" alt="Oricalco Pixel Art" class="logo-img">
+            </div>
+
+            <!-- Lista de Canciones -->
+            <div id="songs-list-container" class="songs-list-container">
+                <div class="section-title">🎵 Seleccioná un Tema</div>
+                <div class="songs-list">
+                    <button class="song-btn" onclick="openSong('La Constante')">La Constante</button>
+                    <button class="song-btn" onclick="openSong('La Danza')">La Danza</button>
+                    <button class="song-btn" onclick="openSong('Rancio')">Rancio</button>
+                    <button class="song-btn" onclick="openSong('Trance')">Trance</button>
+                    <button class="song-btn" onclick="openSong('A Prueba y Error')">A Prueba y Error</button>
+                    <button class="song-btn" onclick="openSong('Bazar Eterno')">Bazar Eterno</button>
+                    <button class="song-btn" onclick="openSong('Siempre Seras')">Siempre Seras</button>
+                    <button class="song-btn" onclick="openSong('Parecido al Amor')">Parecido al Amor</button>
+                    <button class="song-btn" onclick="openSong('Otra Vez')">Otra Vez</button>
+                    <button class="song-btn" onclick="openSong('Jardin de Paz')">Jardin de Paz</button>
+                    <button class="song-btn" onclick="openSong('Estante')">Estante</button>
+                </div>
+            </div>
+
+            <!-- Reproductor de la Canción Seleccionada -->
+            <div id="song-player-view" class="player-view">
+                <button class="back-btn" onclick="backToSongsList()">← Volver a la lista</button>
+                <div class="section-title" id="current-song-title">🎧 Reproductor</div>
+                
+                <!-- Reproductor MP3 Completo -->
+                <div class="audio-player-box">
+                    <span style="font-size: 14px; color: var(--text-muted);">Ensayo completo (Estéreo)</span>
+                    <audio id="mainAudio" controls src=""></audio>
+                </div>
+
+                <!-- Desplegable para Pistas Separadas (Futuro) -->
+                <button class="accordion">🎛️ Desglosar Pistas (Multitrack)</button>
+                <div class="panel">
+                    <div class="panel-content">
+                        <div class="track-control">
+                            <label>🎤 Voz</label>
+                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <div class="track-control">
+                            <label>🎸 Bajo</label>
+                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <div class="track-control">
+                            <label>🎸 Guitarra</label>
+                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <div class="track-control">
+                            <label>🥁 Batería</label>
+                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECCIÓN 2: LETRAS -->
+        <section id="letras-tab" class="tab-content">
+            <div class="section-title">📜 Letras de los Temas</div>
+            <div class="placeholder-text">Próximamente: Las letras de los temas para repasar.</div>
+        </section>
+
+        <!-- SECCIÓN 3: PARTITURAS -->
+        <section id="partituras-tab" class="tab-content">
+            <div class="section-title">🎼 Partituras y Anotaciones</div>
+            <div class="placeholder-text">Próximamente: Acordes, tablaturas y notas de ensayo.</div>
+        </section>
+    </div>
+
+    <script>
+        // Cambiar solapas principales
+        function switchMainTab(evt, tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // Alternar (Abrir/Cerrar) la lista de canciones con el mismo botón
+        function toggleSongsList() {
+            const listContainer = document.getElementById('songs-list-container');
+            const logoImg = document.querySelector('.logo-img');
+
+            if (listContainer.classList.contains('active')) {
+                listContainer.classList.remove('active');
+                logoImg.style.display = 'block';
+            } else {
+                listContainer.classList.add('active');
+                logoImg.style.display = 'none';
+            }
+        }
+
+        // Abrir el reproductor de una canción específica y cargar su MP3
+        function openSong(songName) {
+            document.getElementById('current-song-title').innerText = '🎧 ' + songName;
+            
+            const fileName = songName.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/ /g, "-");
+            
+            const audioEl = document.getElementById('mainAudio');
+            audioEl.src = `audio/${fileName}.mp3`;
+            
+            document.getElementById('songs-list-container').classList.remove('active');
+            document.getElementById('song-player-view').classList.add('active');
+        }
+
+        // Volver de la canción a la lista de temas
+        function backToSongsList() {
+            document.getElementById('mainAudio').pause();
+            document.getElementById('song-player-view').classList.remove('active');
+            document.getElementById('songs-list-container').classList.add('active');
+        }
+
+        // Acordeón de pistas separadas
+        const acc = document.querySelector(".accordion");
+        acc.addEventListener("click", function() {
+            this.classList.toggle("active");
+            const panel = this.nextElementSibling;
+            if (panel.style.maxHeight) {
+                panel.style.maxHeight = null;
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+        });
+    </script>
+
+</body>
+</html>
