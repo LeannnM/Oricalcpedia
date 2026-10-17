@@ -143,7 +143,7 @@
             transform: translateY(-2px);
         }
 
-        /* Estilo limpio para la imagen sin bordes molestos */
+        /* Estilo limpio para la imagen con mix-blend-mode para fundir el fondo blanco */
         .logo-img {
             max-width: 100%;
             height: auto;
@@ -190,7 +190,7 @@
             transform: translateX(4px);
         }
 
-        /* Vista del Reproductor de una Canción Individual */
+        /* Vista del Reproductor Multitrack de una Canción */
         .player-view {
             display: none;
         }
@@ -221,11 +221,6 @@
             border-radius: 8px;
             margin-bottom: 15px;
             text-align: center;
-        }
-
-        .audio-player-box audio {
-            width: 100%;
-            margin-top: 10px;
         }
 
         /* Acordeón para Pistas Separadas */
@@ -346,39 +341,44 @@
                 </div>
             </div>
 
-            <!-- Reproductor de la Canción Seleccionada -->
+            <!-- Reproductor Multitrack de la Canción Seleccionada -->
             <div id="song-player-view" class="player-view">
                 <button class="back-btn" onclick="backToSongsList()">← Volver a la lista</button>
-                <div class="section-title" id="current-song-title">🎧 Reproductor</div>
+                <div class="section-title" id="current-song-title">🎧 Reproductor Multitrack</div>
                 
-                <!-- Reproductor MP3 Completo -->
+                <!-- Controles principales de Sincronización -->
                 <div class="audio-player-box">
-                    <span style="font-size: 14px; color: var(--text-muted);">Ensayo completo (Estéreo)</span>
-                    <audio id="mainAudio" controls src=""></audio>
+                    <button class="btn-open-songs" id="playPauseBtn" onclick="togglePlay()" style="margin: 0; padding: 10px;">▶ Reproducir / Pausar</button>
                 </div>
 
-                <!-- Desplegable para Pistas Separadas (Futuro) -->
-                <button class="accordion">🎛️ Desglosar Pistas (Multitrack)</button>
-                <div class="panel">
+                <!-- Desplegable de Pistas Separadas (Multitrack activo) -->
+                <button class="accordion active">🎛️ Control de Canales (Stems)</button>
+                <div class="panel" style="max-height: 300px;">
                     <div class="panel-content">
                         <div class="track-control">
                             <label>🎤 Voz</label>
-                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                            <input type="range" class="volume-slider" data-track="voz" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this)">
                         </div>
                         <div class="track-control">
                             <label>🎸 Bajo</label>
-                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                            <input type="range" class="volume-slider" data-track="bajo" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this)">
                         </div>
                         <div class="track-control">
-                            <label>🎸 Guitarra</label>
-                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                            <label>🎸 Instrumentos / Otro</label>
+                            <input type="range" class="volume-slider" data-track="other" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this)">
                         </div>
                         <div class="track-control">
                             <label>🥁 Batería</label>
-                            <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                            <input type="range" class="volume-slider" data-track="bateria" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this)">
                         </div>
                     </div>
                 </div>
+
+                <!-- Elementos de audio ocultos para cada canal -->
+                <audio id="audio-voz" preload="auto" loop></audio>
+                <audio id="audio-bajo" preload="auto" loop></audio>
+                <audio id="audio-other" preload="auto" loop></audio>
+                <audio id="audio-bateria" preload="auto" loop></audio>
             </div>
 
         </section>
@@ -406,7 +406,7 @@
             evt.currentTarget.classList.add('active');
         }
 
-        // Alternar (Abrir/Cerrar) la lista de canciones con el mismo botón
+        // Alternar (Abrir/Cerrar) la lista de canciones con el botón principal
         function toggleSongsList() {
             const listContainer = document.getElementById('songs-list-container');
             const logoImg = document.querySelector('.logo-img');
@@ -420,29 +420,92 @@
             }
         }
 
-        // Abrir el reproductor de una canción específica y cargar su MP3
+        // Objetos de audio para los 4 canales de la canción
+        const tracks = {
+            voz: document.getElementById('audio-voz'),
+            bajo: document.getElementById('audio-bajo'),
+            other: document.getElementById('audio-other'),
+            bateria: document.getElementById('audio-bateria')
+        };
+
+        let isPlaying = false;
+
+        // Abrir el reproductor de una canción específica y cargar sus 4 pistas
         function openSong(songName) {
             document.getElementById('current-song-title').innerText = '🎧 ' + songName;
             
-            const fileName = songName.toLowerCase()
+            const folderName = songName.toLowerCase()
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .replace(/ /g, "-");
             
-            const audioEl = document.getElementById('mainAudio');
-            audioEl.src = `audio/${fileName}.mp3`;
+            // Asignamos las rutas a cada canal (ajustá los sufijos si tus archivos tienen otro nombre, ej: -vocals.mp3)
+            tracks.voz.src = `audio/${folderName}/${folderName}-voz.mp3`;
+            tracks.bajo.src = `audio/${folderName}/${folderName}-bajo.mp3`;
+            tracks.other.src = `audio/${folderName}/${folderName}-other.mp3`;
+            tracks.bateria.src = `audio/${folderName}/${folderName}-bateria.mp3`;
+
+            // Precargamos los audios
+            for (let key in tracks) {
+                tracks[key].load();
+                tracks[key].volume = 1;
+            }
+
+            // Reseteamos sliders y estado de play
+            document.querySelectorAll('.volume-slider').forEach(slider => slider.value = 1);
+            if (isPlaying) {
+                for (let key in tracks) tracks[key].pause();
+                isPlaying = false;
+                document.getElementById('playPauseBtn').innerText = "▶ Reproducir / Pausar";
+            }
             
             document.getElementById('songs-list-container').classList.remove('active');
             document.getElementById('song-player-view').classList.add('active');
         }
 
+        // Reproducir / Pausar todos los canales perfectamente sincronizados
+        function togglePlay() {
+            const btn = document.getElementById('playPauseBtn');
+            
+            if (!isPlaying) {
+                const currentTime = tracks.voz.currentTime;
+                for (let key in tracks) {
+                    tracks[key].currentTime = currentTime;
+                    tracks[key].play();
+                }
+                isPlaying = true;
+                btn.innerText = "⏸ Pausar";
+            } else {
+                for (let key in tracks) {
+                    tracks[key].pause();
+                }
+                isPlaying = false;
+                btn.innerText = "▶ Reproducir";
+            }
+        }
+
+        // Controlar el volumen de cada pista individualmente
+        function changeVolume(slider) {
+            const trackName = slider.getAttribute('data-track');
+            const volume = slider.value;
+            if (tracks[trackName]) {
+                tracks[trackName].volume = volume;
+            }
+        }
+
         // Volver de la canción a la lista de temas
         function backToSongsList() {
-            document.getElementById('mainAudio').pause();
+            for (let key in tracks) {
+                tracks[key].pause();
+                tracks[key].currentTime = 0;
+            }
+            isPlaying = false;
+            document.getElementById('playPauseBtn').innerText = "▶ Reproducir / Pausar";
+            
             document.getElementById('song-player-view').classList.remove('active');
             document.getElementById('songs-list-container').classList.add('active');
         }
 
-        // Acordeón de pistas separadas
+        // Acordeón desplegable para los canales
         const acc = document.querySelector(".accordion");
         acc.addEventListener("click", function() {
             this.classList.toggle("active");
