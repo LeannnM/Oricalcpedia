@@ -143,7 +143,7 @@
             transform: translateY(-2px);
         }
 
-        /* Estilo limpio para la imagen con mix-blend-mode para fundir el fondo blanco */
+        /* Logo limpio con mix-blend-mode */
         .logo-img {
             max-width: 100%;
             height: auto;
@@ -190,7 +190,7 @@
             transform: translateX(4px);
         }
 
-        /* Vista del Reproductor Multitrack de una Canción */
+        /* Vista del Reproductor de una Canción */
         .player-view {
             display: none;
         }
@@ -318,8 +318,6 @@
             <!-- Vista de Inicio de Tracks -->
             <div id="tracks-home-view" class="tracks-home">
                 <button class="btn-open-songs" onclick="toggleSongsList()">🎸 Ver Lista de Temas</button>
-                
-                <!-- Logo de la banda limpio -->
                 <img src="logo.png" alt="Oricalco Pixel Art" class="logo-img">
             </div>
 
@@ -341,20 +339,24 @@
                 </div>
             </div>
 
-            <!-- Reproductor Multitrack de la Canción Seleccionada -->
+            <!-- Reproductor de la Canción Seleccionada -->
             <div id="song-player-view" class="player-view">
                 <button class="back-btn" onclick="backToSongsList()">← Volver a la lista</button>
-                <div class="section-title" id="current-song-title">🎧 Reproductor Multitrack</div>
+                <div class="section-title" id="current-song-title">🎧 Reproductor</div>
                 
-                <!-- Controles principales de Sincronización -->
+                <!-- 1. OPCIÓN: AUDIO COMPLETO (TRACK FULL) -->
                 <div class="audio-player-box">
-                    <button class="btn-open-songs" id="playPauseBtn" onclick="togglePlay()" style="margin: 0; padding: 10px;">▶ Reproducir / Pausar</button>
+                    <span style="font-size: 14px; color: var(--text-muted);">🔊 Audio Completo (Estéreo)</span>
+                    <audio id="mainAudio" controls src="" style="width: 100%; margin-top: 10px;"></audio>
                 </div>
 
-                <!-- Desplegable de Pistas Separadas (Multitrack activo) -->
-                <button class="accordion active">🎛️ Control de Canales (Stems)</button>
-                <div class="panel" style="max-height: 300px;">
+                <!-- 2. OPCIÓN: DESPLEGABLE PARA MULTITRACK (STEMS) -->
+                <button class="accordion">🎛️ Desglosar Pistas (Multitrack por Canales)</button>
+                <div class="panel">
                     <div class="panel-content">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <button class="btn-open-songs" id="playPauseBtn" onclick="togglePlay()" style="margin: 0; padding: 10px; font-size: 14px;">▶ Reproducir Multitrack Sincronizado</button>
+                        </div>
                         <div class="track-control">
                             <label>🎤 Voz</label>
                             <input type="range" class="volume-slider" data-track="voz" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this)">
@@ -364,7 +366,7 @@
                             <input type="range" class="volume-slider" data-track="bajo" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this)">
                         </div>
                         <div class="track-control">
-                            <label>🎸 Instrumentos / Otro</label>
+                            <label>🎸 Guitarra / Other</label>
                             <input type="range" class="volume-slider" data-track="other" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this)">
                         </div>
                         <div class="track-control">
@@ -374,7 +376,7 @@
                     </div>
                 </div>
 
-                <!-- Elementos de audio ocultos para cada canal -->
+                <!-- Elementos de audio ocultos para los canales multitrack -->
                 <audio id="audio-voz" preload="auto" loop></audio>
                 <audio id="audio-bajo" preload="auto" loop></audio>
                 <audio id="audio-other" preload="auto" loop></audio>
@@ -406,7 +408,7 @@
             evt.currentTarget.classList.add('active');
         }
 
-        // Alternar (Abrir/Cerrar) la lista de canciones con el botón principal
+        // Alternar la lista de canciones en el inicio
         function toggleSongsList() {
             const listContainer = document.getElementById('songs-list-container');
             const logoImg = document.querySelector('.logo-img');
@@ -420,7 +422,7 @@
             }
         }
 
-        // Objetos de audio para los 4 canales de la canción
+        // Objetos de audio para los 4 canales multitrack
         const tracks = {
             voz: document.getElementById('audio-voz'),
             bajo: document.getElementById('audio-bajo'),
@@ -430,7 +432,7 @@
 
         let isPlaying = false;
 
-        // Abrir el reproductor de una canción específica y cargar sus 4 pistas
+        // Abrir canción y cargar tanto el track full como los tallos
         function openSong(songName) {
             document.getElementById('current-song-title').innerText = '🎧 ' + songName;
             
@@ -438,31 +440,34 @@
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .replace(/ /g, "-");
             
-            // Asignamos las rutas a cada canal (ajustá los sufijos si tus archivos tienen otro nombre, ej: -vocals.mp3)
+            // 1. Carga el audio full estéreo normal
+            const mainAudioEl = document.getElementById('mainAudio');
+            mainAudioEl.src = `audio/${folderName}.mp3`;
+
+            // 2. Carga las pistas separadas para el multitrack
             tracks.voz.src = `audio/${folderName}/${folderName}-voz.mp3`;
             tracks.bajo.src = `audio/${folderName}/${folderName}-bajo.mp3`;
             tracks.other.src = `audio/${folderName}/${folderName}-other.mp3`;
             tracks.bateria.src = `audio/${folderName}/${folderName}-bateria.mp3`;
 
-            // Precargamos los audios
             for (let key in tracks) {
                 tracks[key].load();
                 tracks[key].volume = 1;
             }
 
-            // Reseteamos sliders y estado de play
             document.querySelectorAll('.volume-slider').forEach(slider => slider.value = 1);
+            
             if (isPlaying) {
                 for (let key in tracks) tracks[key].pause();
                 isPlaying = false;
-                document.getElementById('playPauseBtn').innerText = "▶ Reproducir / Pausar";
+                document.getElementById('playPauseBtn').innerText = "▶ Reproducir Multitrack Sincronizado";
             }
             
             document.getElementById('songs-list-container').classList.remove('active');
             document.getElementById('song-player-view').classList.add('active');
         }
 
-        // Reproducir / Pausar todos los canales perfectamente sincronizados
+        // Reproducir / Pausar el multitrack sincronizado
         function togglePlay() {
             const btn = document.getElementById('playPauseBtn');
             
@@ -473,17 +478,17 @@
                     tracks[key].play();
                 }
                 isPlaying = true;
-                btn.innerText = "⏸ Pausar";
+                btn.innerText = "⏸ Pausar Multitrack";
             } else {
                 for (let key in tracks) {
                     tracks[key].pause();
                 }
                 isPlaying = false;
-                btn.innerText = "▶ Reproducir";
+                btn.innerText = "▶ Reproducir Multitrack Sincronizado";
             }
         }
 
-        // Controlar el volumen de cada pista individualmente
+        // Controlar volumen de cada canal individual
         function changeVolume(slider) {
             const trackName = slider.getAttribute('data-track');
             const volume = slider.value;
@@ -492,20 +497,21 @@
             }
         }
 
-        // Volver de la canción a la lista de temas
+        // Volver a la lista y pausar todo
         function backToSongsList() {
+            document.getElementById('mainAudio').pause();
             for (let key in tracks) {
                 tracks[key].pause();
                 tracks[key].currentTime = 0;
             }
             isPlaying = false;
-            document.getElementById('playPauseBtn').innerText = "▶ Reproducir / Pausar";
+            document.getElementById('playPauseBtn').innerText = "▶ Reproducir Multitrack Sincronizado";
             
             document.getElementById('song-player-view').classList.remove('active');
             document.getElementById('songs-list-container').classList.add('active');
         }
 
-        // Acordeón desplegable para los canales
+        // Acordeón desplegable para el multitrack
         const acc = document.querySelector(".accordion");
         acc.addEventListener("click", function() {
             this.classList.toggle("active");
